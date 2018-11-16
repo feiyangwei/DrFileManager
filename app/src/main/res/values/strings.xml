@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">DrFileManager</string>
+
+    <string name="menu_uncompress">解压</string>
+    <string name="menu_rename">重命名</string>
+    <string name="menu_paste">粘贴</string>
+    <string name="menu_create_file">新建文件</string>
+    <string name="menu_uninstall">卸载</string>
+    <string name="menu_stop">停止</string>
+    <string name="menu_properties">属性</string>
+    <string name="menu_edit">编译</string>
+    <string name="menu_add">添加</string>
 </resources>
