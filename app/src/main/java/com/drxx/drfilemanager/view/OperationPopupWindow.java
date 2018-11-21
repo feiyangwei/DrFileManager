@@ -1,17 +1,24 @@
 package com.drxx.drfilemanager.view;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupWindow;
 
+import com.drxx.drfilemanager.DocumentsContract;
 import com.drxx.drfilemanager.R;
 import com.drxx.drfilemanager.fragment.RenameFragment;
 import com.drxx.drfilemanager.model.FileInfo;
+import com.drxx.drfilemanager.utils.FileUtils;
+
+import java.io.File;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,6 +31,7 @@ import butterknife.OnClick;
  * 邮箱：cugb_feiyang@163.com
  */
 public class OperationPopupWindow extends PopupWindow {
+    private static final String TAG = "OperationPopupWindow";
     @BindView(R.id.tv_rename)
     Button tvRename;
     @BindView(R.id.tv_copy)
@@ -35,11 +43,21 @@ public class OperationPopupWindow extends PopupWindow {
 
     private Context mContext;
     private View root;
+    private String path;
+    ResultCallBack listener;
 
-
-    public OperationPopupWindow(Context mContext) {
+    public OperationPopupWindow(Context mContext, ResultCallBack listener) {
         this.mContext = mContext;
+        this.listener = listener;
         init();
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     private void init() {
@@ -71,6 +89,7 @@ public class OperationPopupWindow extends PopupWindow {
                 dismiss();
                 break;
             case R.id.tv_delete:
+                listener.deleteResult(FileUtils.delete(path));
                 dismiss();
                 break;
         }
@@ -87,12 +106,6 @@ public class OperationPopupWindow extends PopupWindow {
         super.showAsDropDown(anchor);
     }
 
-    /**
-     * 删除
-     */
-    private void deleteDocument() {
-
-    }
 
     /**
      * 移动
@@ -105,8 +118,13 @@ public class OperationPopupWindow extends PopupWindow {
      * 重命名
      */
     private void renameDocument() {
-        RenameFragment.show(((FragmentActivity) mContext).getSupportFragmentManager(), new FileInfo("111"));
+        String filePath = path.substring(0, path.lastIndexOf("/") + 1);
+        String name = path.substring(path.lastIndexOf("/")+1, path.length());
+        RenameFragment.show(((FragmentActivity) mContext).getSupportFragmentManager(), filePath, name);
     }
 
 
+    public interface ResultCallBack {
+        public void deleteResult(boolean result);
+    }
 }

@@ -35,6 +35,7 @@ import android.widget.EditText;
 
 import com.drxx.drfilemanager.R;
 import com.drxx.drfilemanager.model.FileInfo;
+import com.drxx.drfilemanager.utils.FileUtils;
 
 
 /**
@@ -42,27 +43,32 @@ import com.drxx.drfilemanager.model.FileInfo;
  */
 public class RenameFragment extends DialogFragment {
     private static final String TAG_RENAME = "rename";
-	private static final String EXTRA_DOC = "document";
-	private boolean editExtension = true;
-	private FileInfo doc;
-	
-    public static void show(FragmentManager fm, FileInfo doc) {
-		final Bundle args = new Bundle();
-		//args.putParcelable(EXTRA_DOC, doc);
-		
+    private static final String EXTRA_DOC = "document";
+    private static final String EXTRA_PATH_OLD = "old_path";
+    private static final String EXTRA_PATH_NEW = "new_path";
+    private static final String EXTRA_FILE_NAME = "file_name";
+    private boolean editExtension = true;
+    private FileInfo doc;
+    private String oldPath;
+    private String newPath;
+
+    public static void show(FragmentManager fm, String oldPath, String fileName) {
+        final Bundle args = new Bundle();
+        args.putString(EXTRA_PATH_OLD, oldPath);
+        args.putString(EXTRA_FILE_NAME, fileName);
         final RenameFragment dialog = new RenameFragment();
         dialog.setArguments(args);
         dialog.show(fm, TAG_RENAME);
     }
-    
+
     @Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		Bundle args = getArguments();
-		if(null != args){
-			doc = args.getParcelable(EXTRA_DOC);
-		}
-	}
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Bundle args = getArguments();
+        if (null != args) {
+            doc = args.getParcelable(EXTRA_DOC);
+        }
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -80,7 +86,7 @@ public class RenameFragment extends DialogFragment {
 
         //text1.setText(nameOnly);
         //text1.setSelection(text1.getText().length());
-        
+
         builder.setTitle(R.string.menu_rename);
         builder.setView(view);
 
@@ -88,17 +94,21 @@ public class RenameFragment extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final String displayName = text1.getText().toString();
- //               final String fileName = editExtension ? displayName : FileUtils.addExtension(doc.mimeType, displayName);
-                		
+                String fileName = getArguments().getString(EXTRA_FILE_NAME);
+                oldPath = getArguments().getString(EXTRA_PATH_OLD);
+                //               final String fileName = editExtension ? displayName : FileUtils.addExtension(doc.mimeType, displayName);
+
 //                new RenameTask(activity, doc, fileName).executeOnExecutor(
 //                        ProviderExecutor.forAuthority(doc.authority));
+
+                FileUtils.renameFile(oldPath + fileName, oldPath + displayName);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
 
         return builder.create();
     }
-    
+
 //    private class RenameTask extends AsyncTask<Void, Void, DocumentInfo> {
 //        private final DocumentsActivity mActivity;
 //        private final DocumentInfo mDoc;
