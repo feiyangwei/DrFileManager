@@ -23,6 +23,10 @@ import com.drxx.drfilemanager.utils.PermissionsUtil;
 import com.drxx.drfilemanager.view.OperationPopupWindow;
 import com.socks.library.KLog;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mContext = this;
         ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
 
         Log.e("BGA", "getFilesDir = " + mContext.getFilesDir());
         Log.e("BGA", "getCacheDir = " + mContext.getCacheDir());
@@ -92,6 +97,12 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 
     private void initPathRv() {
@@ -206,4 +217,10 @@ public class MainActivity extends AppCompatActivity {
             dataAdapter.notifyDataSetChanged();
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(FileInfo event) {
+        /* Do something */
+    }
+
 }
