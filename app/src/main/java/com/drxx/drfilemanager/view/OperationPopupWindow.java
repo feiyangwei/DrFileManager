@@ -12,11 +12,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupWindow;
 
+import com.drxx.drfilemanager.Constants;
 import com.drxx.drfilemanager.DocumentsContract;
 import com.drxx.drfilemanager.R;
 import com.drxx.drfilemanager.fragment.RenameFragment;
 import com.drxx.drfilemanager.model.FileInfo;
+import com.drxx.drfilemanager.model.MessageEvent;
 import com.drxx.drfilemanager.utils.FileUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 
@@ -89,7 +93,8 @@ public class OperationPopupWindow extends PopupWindow {
                 dismiss();
                 break;
             case R.id.tv_delete:
-                listener.deleteResult(FileUtils.delete(path));
+                String result = FileUtils.delete(path)+"";
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_DELETE, result));//MainActivity
                 dismiss();
                 break;
         }
@@ -119,7 +124,7 @@ public class OperationPopupWindow extends PopupWindow {
      */
     private void renameDocument() {
         String filePath = path.substring(0, path.lastIndexOf("/") + 1);
-        String name = path.substring(path.lastIndexOf("/")+1, path.length());
+        String name = path.substring(path.lastIndexOf("/") + 1, path.length());
         RenameFragment.show(((FragmentActivity) mContext).getSupportFragmentManager(), filePath, name);
     }
 

@@ -20,6 +20,15 @@ public class FileInfo {
     private String filePath;
     private String fileType;
     private boolean isChoose;
+    private String flag;
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
+    }
 
     public String getFileType() {
         return fileType;

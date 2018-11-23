@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -30,8 +31,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import com.drxx.drfilemanager.Constants;
 import com.drxx.drfilemanager.R;
+import com.drxx.drfilemanager.model.MessageEvent;
 import com.drxx.drfilemanager.utils.FileUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 
 /**
@@ -68,61 +73,12 @@ public class CreateDirectoryFragment extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 final String displayName = text1.getText().toString();
 
-
-                FileUtils.createDir(path + "/" + displayName);
+                String result = FileUtils.createDir(path + "/" + displayName);
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_CREATE_DIR, result));//MainActivity
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
 
         return builder.create();
     }
-
-//    private class CreateDirectoryTask extends AsyncTask<Void, Void, DocumentInfo> {
-//        private final BaseActivity mActivity;
-//        private final DocumentInfo mCwd;
-//		private final String mDisplayName;
-//
-//        public CreateDirectoryTask(
-//                BaseActivity activity, DocumentInfo cwd, String displayName) {
-//            mActivity = activity;
-//            mCwd = cwd;
-//            mDisplayName = displayName;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            mActivity.setPending(true);
-//        }
-//
-//        @Override
-//        protected DocumentInfo doInBackground(Void... params) {
-//            final ContentResolver resolver = mActivity.getContentResolver();
-//            ContentProviderClient client = null;
-//            try {
-//				client = DocumentsApplication.acquireUnstableProviderOrThrow(resolver, mCwd.derivedUri.getAuthority());
-//                final Uri childUri = DocumentsContract.createDocument(
-//                		resolver, mCwd.derivedUri, Document.MIME_TYPE_DIR, mDisplayName);
-//                return DocumentInfo.fromUri(resolver, childUri);
-//            } catch (Exception e) {
-//                Log.w(BaseActivity.TAG, "Failed to create directory", e);
-//                CrashReportingManager.logException(e);
-//                return null;
-//            } finally {
-//            	ContentProviderClientCompat.releaseQuietly(client);
-//            }
-//        }
-//
-//        @Override
-//        protected void onPostExecute(DocumentInfo result) {
-//            if (result != null) {
-//                // Navigate into newly created child
-//                mActivity.onDocumentPicked(result);
-//            } else {
-//                if(!mActivity.isSAFIssue(mCwd.documentId)) {
-//                    mActivity.showError(R.string.create_error);
-//                }
-//            }
-//            mActivity.setPending(false);
-//        }
-//    }
 }

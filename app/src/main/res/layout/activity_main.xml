@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,31 +9,46 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="20dp"
-                android:text="当前路径:" />
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rv_path"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:text="当前路径:" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_path"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tv_path"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp" />
+
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tv_path"
-                android:layout_width="match_parent"
+                android:id="@+id/tv_paste"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:padding="20dp" />
-
-
-        </LinearLayout>
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="10dp"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="粘贴" />
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -72,16 +88,41 @@
         android:layout_alignParentRight="true"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btn_create_file"
-            android:layout_width="100dp"
+        <com.drxx.drfilemanager.view.fab.FloatingActionMenu
+            android:id="@+id/menu_fab"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="添加文件" />
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="80dp"
+            android:layout_marginTop="10dp"
+            fab:menu_animationDelayPerItem="0"
+            fab:menu_colorNormal="#FFB805"
+            fab:menu_colorPressed="#F2AB00"
+            fab:menu_colorRipple="#D99200"
+            fab:menu_labels_hideAnimation="@anim/jump_to_down"
+            fab:menu_labels_showAnimation="@anim/jump_from_down"
+            fab:menu_labels_style="@style/MenuLabelsStyle"
+            fab:menu_shadowColor="#444">
 
-        <Button
-            android:id="@+id/btn_create_dir"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:text="添加文件夹" />
+            <com.drxx.drfilemanager.view.fab.FloatingActionButton
+                android:id="@+id/fab_create_file"
+                style="@style/MenuButtonsStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_menu_new_file"
+                fab:fab_label="新建文件" />
+
+            <com.drxx.drfilemanager.view.fab.FloatingActionButton
+                android:id="@+id/fab_create_dir"
+                style="@style/MenuButtonsStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_menu_new_folder"
+                fab:fab_label="新建文件夹" />
+        </com.drxx.drfilemanager.view.fab.FloatingActionMenu>
+
     </LinearLayout>
 </RelativeLayout>

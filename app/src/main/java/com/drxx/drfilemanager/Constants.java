@@ -11,8 +11,11 @@ public class Constants {
     public static final String FILE_TYPE_FILE = "文件";
 
     public static final String OPERATION_COPY = "copy";
-    public static final String OPERATION_CREATE = "create";
+    public static final String OPERATION_CREATE_FILE = "create_file";
+    public static final String OPERATION_CREATE_DIR = "create_dir";
     public static final String OPERATION_DELETE = "delete";
     public static final String OPERATION_RENAME = "rename";
     public static final String OPERATION_MOVE= "move";
+
+    public static final String RESULT_CREATE_DIR_SUCCESS= "成功";
 }

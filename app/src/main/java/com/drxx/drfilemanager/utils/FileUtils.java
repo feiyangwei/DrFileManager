@@ -1,5 +1,6 @@
 package com.drxx.drfilemanager.utils;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -43,7 +44,7 @@ public class FileUtils {
         List<FileInfo> list = new ArrayList<>();
         File[] fileArray = new File(file.getFilePath()).listFiles();
         if (fileArray == null) {
-            return null;
+            return list;
         } else {
             for (File f : fileArray) {
                 String type;
@@ -149,12 +150,19 @@ public class FileUtils {
      * @param oldPath 原来的文件地址
      * @param newPath 新的文件地址
      */
-    public static void renameFile(String oldPath, String newPath) {
-        File oleFile = new File(oldPath);
+    public static String renameFile(String oldPath, String newPath) {
+        File oldFile = new File(oldPath);
         File newFile = new File(newPath);
+        String result = "";
         //执行重命名
-        boolean isSuccess = oleFile.renameTo(newFile);
-        Log.e("BGA", "isSuccess =" + isSuccess);
+        boolean isSuccess = oldFile.renameTo(newFile);
+        if (oldFile.renameTo(newFile)) {
+            Log.e("BGA", "isSuccess =" + isSuccess);
+            result = "重命名成功";
+        }else{
+            result = "重命名失败";
+        }
+        return result;
 
 
     }
@@ -346,7 +354,12 @@ public class FileUtils {
         } else {
             intent.setDataAndType(Uri.fromFile(f), mimetype);
         }
-        context.startActivity(intent);
+        try {
+            context.startActivity(intent);
+        }catch (ActivityNotFoundException e){
+            ToastUtils.showShort("未找到可以打开该文件的应用");
+        }
+
     }
 
     public static Uri getUriForFile(Context mContext, File file) {
@@ -383,37 +396,49 @@ public class FileUtils {
      * @param fileName 文件名
      * @return
      */
-    public static boolean createFile(String filePath, String fileName) {
+    public static String createFile(String filePath, String fileName) {
 
         String strFilePath = filePath + "/" + fileName;
-
+        String result = "";
         File file = new File(filePath);
         if (!file.exists()) {
             /**  注意这里是 mkdirs()方法  可以创建多个文件夹 */
-            file.mkdirs();
+            if (!file.mkdirs()) {
+                result = "文件夹创建失败";
+                return result;
+            }
         }
 
         File subfile = new File(strFilePath);
 
         if (!subfile.exists()) {
             try {
-                boolean b = subfile.createNewFile();
-                return b;
+                if (subfile.createNewFile()) {
+                    result = fileName + "创建成功";
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                result = e.getMessage();
             }
         } else {
-            return true;
+            result = fileName + "已经存在";
         }
-        return false;
+        return result;
     }
 
-    public static void createDir(String filePath) {
+    public static String createDir(String filePath) {
         File file = new File(filePath);
+        String result = "";
         if (!file.exists()) {
             /**  注意这里是 mkdirs()方法  可以创建多个文件夹 */
-            file.mkdirs();
+            if (file.mkdirs()) {
+                result = "文件夹创建成功";
+            } else {
+                result = "文件夹创建失败";
+            }
+        } else {
+            result = "文件夹已经存在";
         }
+        return result;
     }
     // </editor-fold>
 
@@ -497,8 +522,6 @@ public class FileUtils {
                         break;
                 }
             }
-        } else {
-            flag = false;
         }
         if (!flag) {
             ToastUtils.showShort("删除目录失败！");

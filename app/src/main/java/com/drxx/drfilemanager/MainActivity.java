@@ -10,7 +10,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.drxx.drfilemanager.adapter.DataAdapter;
@@ -18,9 +17,13 @@ import com.drxx.drfilemanager.adapter.HomeAdapter;
 import com.drxx.drfilemanager.fragment.CreateDirectoryFragment;
 import com.drxx.drfilemanager.fragment.CreateFileFragment;
 import com.drxx.drfilemanager.model.FileInfo;
+import com.drxx.drfilemanager.model.MessageEvent;
 import com.drxx.drfilemanager.utils.FileUtils;
 import com.drxx.drfilemanager.utils.PermissionsUtil;
+import com.drxx.drfilemanager.utils.ToastUtils;
 import com.drxx.drfilemanager.view.OperationPopupWindow;
+import com.drxx.drfilemanager.view.fab.FloatingActionButton;
+import com.drxx.drfilemanager.view.fab.FloatingActionMenu;
 import com.socks.library.KLog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -52,10 +55,13 @@ public class MainActivity extends AppCompatActivity {
     TextView tvPath;
     @BindView(R.id.rv_path)
     RecyclerView rvPath;
-    @BindView(R.id.btn_create_file)
-    Button btnCreateFile;
-    @BindView(R.id.btn_create_dir)
-    Button btnCreateDir;
+    @BindView(R.id.fab_create_file)
+    FloatingActionButton fabCreateFile;
+    @BindView(R.id.fab_create_dir)
+    FloatingActionButton fabCreateDir;
+    @BindView(R.id.menu_fab)
+    FloatingActionMenu menuFab;
+
     private Context mContext;
     private List<FileInfo> homeList = new ArrayList<>();
     private List<FileInfo> dataList = new ArrayList<>();
@@ -194,33 +200,39 @@ public class MainActivity extends AppCompatActivity {
         initRightRv();
     }
 
-    @OnClick({R.id.btn_create_file, R.id.btn_create_dir})
+    @OnClick({R.id.fab_create_file, R.id.fab_create_dir})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.btn_create_file:
+            case R.id.fab_create_file:
                 CreateFileFragment.show(getSupportFragmentManager(), locationPath, "text/plain", "File");
                 break;
-            case R.id.btn_create_dir:
+            case R.id.fab_create_dir:
                 CreateDirectoryFragment.show(getSupportFragmentManager(), locationPath, "", "");
                 break;
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        KLog.e("导致了");
-
-        if (null != dataAdapter) {
-            dataList.clear();
-            dataList.addAll(FileUtils.getFile(homeList.get(leftPosition)));
-            dataAdapter.notifyDataSetChanged();
-        }
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(FileInfo event) {
-        /* Do something */
+    public void onMessageEvent(MessageEvent info) {
+        switch (info.getFlag()) {
+            case Constants.OPERATION_DELETE:
+            case Constants.OPERATION_RENAME:
+            case Constants.OPERATION_CREATE_FILE:
+            case Constants.OPERATION_CREATE_DIR:
+                if (null != dataAdapter) {
+                    dataList.clear();
+                    dataList.addAll(FileUtils.getFile(homeList.get(leftPosition)));
+                    dataAdapter.notifyDataSetChanged();
+                }
+
+                ToastUtils.showLong(info.getResult());
+                break;
+            case Constants.OPERATION_COPY:
+                break;
+            case Constants.OPERATION_MOVE:
+                break;
+
+        }
     }
 
 }

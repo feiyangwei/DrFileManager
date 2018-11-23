@@ -33,9 +33,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import com.drxx.drfilemanager.Constants;
 import com.drxx.drfilemanager.R;
 import com.drxx.drfilemanager.model.FileInfo;
+import com.drxx.drfilemanager.model.MessageEvent;
 import com.drxx.drfilemanager.utils.FileUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 
 /**
@@ -96,64 +100,13 @@ public class RenameFragment extends DialogFragment {
                 final String displayName = text1.getText().toString();
                 String fileName = getArguments().getString(EXTRA_FILE_NAME);
                 oldPath = getArguments().getString(EXTRA_PATH_OLD);
-                //               final String fileName = editExtension ? displayName : FileUtils.addExtension(doc.mimeType, displayName);
+                String result = FileUtils.renameFile(oldPath + fileName, oldPath + displayName);
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_RENAME, result));//MainActivity
 
-//                new RenameTask(activity, doc, fileName).executeOnExecutor(
-//                        ProviderExecutor.forAuthority(doc.authority));
-
-                FileUtils.renameFile(oldPath + fileName, oldPath + displayName);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
 
         return builder.create();
     }
-
-//    private class RenameTask extends AsyncTask<Void, Void, DocumentInfo> {
-//        private final DocumentsActivity mActivity;
-//        private final DocumentInfo mDoc;
-//		private final String mFileName;
-//
-//        public RenameTask(
-//                DocumentsActivity activity, DocumentInfo doc, String fileName) {
-//            mActivity = activity;
-//            mDoc = doc;
-//            mFileName = fileName;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            mActivity.setPending(true);
-//        }
-//
-//        @Override
-//        protected DocumentInfo doInBackground(Void... params) {
-//            final ContentResolver resolver = mActivity.getContentResolver();
-//            ContentProviderClient client = null;
-//            try {
-//                final Uri childUri = DocumentsContract.renameDocument(
-//                		resolver, mDoc.derivedUri, mFileName);
-//                return DocumentInfo.fromUri(resolver, childUri);
-//            } catch (Exception e) {
-//                Log.w(BaseActivity.TAG, "Failed to rename directory", e);
-//                CrashReportingManager.logException(e);
-//                return null;
-//            } finally {
-//            	ContentProviderClientCompat.releaseQuietly(client);
-//            }
-//        }
-//
-//        @Override
-//        protected void onPostExecute(DocumentInfo result) {
-//            if (!Utils.isActivityAlive(mActivity)){
-//               return;
-//            }
-//            if (result == null) {
-//                if(!mActivity.isSAFIssue(mDoc.documentId)) {
-//                    mActivity.showError(R.string.rename_error);
-//                }
-//            }
-//            mActivity.setPending(false);
-//        }
-//    }
 }

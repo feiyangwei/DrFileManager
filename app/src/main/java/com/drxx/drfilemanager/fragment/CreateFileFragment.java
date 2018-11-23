@@ -35,9 +35,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import com.drxx.drfilemanager.Constants;
 import com.drxx.drfilemanager.R;
+import com.drxx.drfilemanager.model.MessageEvent;
 import com.drxx.drfilemanager.utils.FileUtils;
 import com.drxx.drfilemanager.utils.Utils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.lang.reflect.Field;
 
@@ -91,56 +95,12 @@ public class CreateFileFragment extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 final String displayName = text1.getText().toString();
                 final String mimeType = getArguments().getString(EXTRA_MIME_TYPE);
-                FileUtils.createFile(path, displayName);
-//                new CreateFileTask(activity, cwd,
-//                        TextUtils.isEmpty(extension) ? mimeType : extension, displayName).executeOnExecutor(
-//                        ProviderExecutor.forAuthority(cwd.authority));
+                String result = FileUtils.createFile(path, displayName);
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_CREATE_FILE, result));//MainActivity
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
 
         return builder.create();
     }
-
-//    private class CreateFileTask extends AsyncTask<Void, Void, Uri> {
-//
-//        private final String mMimeType;
-//        private final String mDisplayName;
-//
-//        public CreateFileTask( String mimeType,
-//                                String displayName) {
-//            mMimeType = mimeType;
-//            mDisplayName = displayName;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//
-//        }
-//
-//        @Override
-//        protected Uri doInBackground(Void... params) {
-//            final ContentResolver resolver = mActivity.getContentResolver();
-//            ContentProviderClient client = null;
-//            Uri childUri = null;
-//            try {
-//                client = DocumentsApplication.acquireUnstableProviderOrThrow(
-//                        resolver, mCwd.derivedUri.getAuthority());
-//                childUri = DocumentsContract.createDocument(
-//                        resolver, mCwd.derivedUri, mMimeType, mDisplayName);
-//            } catch (Exception e) {
-//                Log.w(DocumentsActivity.TAG, "Failed to create document", e);
-//                CrashReportingManager.logException(e);
-//            } finally {
-//                ContentProviderClientCompat.releaseQuietly(client);
-//            }
-//
-//            return childUri;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Uri result) {
-//
-//        }
-//    }
 }
