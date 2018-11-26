@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.drxx.drfilemanager.Constants;
@@ -44,13 +45,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, final int position) {
         FileInfo info = list.get(position);
         if (null != info) {
-            String tmp;
             if (Constants.FILE_TYPE_DIR.equals(info.getFileType())) {
-                tmp = "文件夹 ：";
+                holder.iv.setImageResource(R.drawable.ic_doc_folder);
             } else {
-                tmp = "文件 ：";
+                holder.iv.setImageResource(R.drawable.ic_doc_document);
             }
-            holder.tv.setText(tmp + info.getFileName());
+            holder.tv.setText(info.getFileName());
             //holder.tv.setText(info.getFilePath());
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -77,15 +77,18 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView tv;
+        ImageView iv;
 
         public ViewHolder(View itemView) {
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv_show);
+            iv = itemView.findViewById(R.id.iv_type);
         }
     }
 
     public interface OnItemClickListener {
         public void itemClick(View v, int position);
-        public void itemLongClick(View v,int position);
+
+        public void itemLongClick(View v, int position);
     }
 }
