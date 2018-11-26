@@ -86,10 +86,14 @@ public class OperationPopupWindow extends PopupWindow {
                 dismiss();
                 renameDocument();
                 break;
-            case R.id.tv_copy:
+            case R.id.tv_copy://点击复制
+                // TODO: 2018/11/26 显示编辑按钮，在其他位置
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_COPY,"复制",path));
                 dismiss();
                 break;
             case R.id.tv_cut:
+                // TODO: 2018/11/26 显示编辑（粘贴），在其他位置
+                EventBus.getDefault().post(new MessageEvent(Constants.OPERATION_MOVE,"移动",path));
                 dismiss();
                 break;
             case R.id.tv_delete:

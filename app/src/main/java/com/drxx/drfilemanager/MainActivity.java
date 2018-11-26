@@ -24,7 +24,6 @@ import com.drxx.drfilemanager.utils.ToastUtils;
 import com.drxx.drfilemanager.view.OperationPopupWindow;
 import com.drxx.drfilemanager.view.fab.FloatingActionButton;
 import com.drxx.drfilemanager.view.fab.FloatingActionMenu;
-import com.socks.library.KLog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -61,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fabCreateDir;
     @BindView(R.id.menu_fab)
     FloatingActionMenu menuFab;
+    @BindView(R.id.tv_paste)
+    TextView tvPaste;
 
     private Context mContext;
     private List<FileInfo> homeList = new ArrayList<>();
@@ -70,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private int leftPosition = 0;
     private int rightPosition = 0;
     private String locationPath;//当前路径
+    private String copyPath;//复制源路径
+    private String messageFlag;//标示
     private OperationPopupWindow popupWindow;
 
     @Override
@@ -115,13 +118,10 @@ public class MainActivity extends AppCompatActivity {
         homeAdapter = new HomeAdapter(mContext, homeList, new HomeAdapter.OnItemClickListener() {
             @Override
             public void itemClick(View v, int position) {
-
                 tvPath.setText(homeList.get(position).getFilePath());
                 dataList.clear();
                 dataList.addAll(FileUtils.getFile(homeList.get(position)));
                 dataAdapter.notifyDataSetChanged();
-
-
             }
         });
         rvPath.setLayoutManager(new GridLayoutManager(mContext, 1));
@@ -200,38 +200,57 @@ public class MainActivity extends AppCompatActivity {
         initRightRv();
     }
 
-    @OnClick({R.id.fab_create_file, R.id.fab_create_dir})
+    @OnClick({R.id.fab_create_file, R.id.fab_create_dir, R.id.tv_paste})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.fab_create_file:
+                menuFab.close(true);
                 CreateFileFragment.show(getSupportFragmentManager(), locationPath, "text/plain", "File");
                 break;
             case R.id.fab_create_dir:
+                menuFab.close(true);
                 CreateDirectoryFragment.show(getSupportFragmentManager(), locationPath, "", "");
                 break;
+            case R.id.tv_paste:
+                // TODO: 2018/11/26 还需要对刷新做判断
+                if (FileUtils.copyFiles(copyPath, locationPath)) {
+                    refreshData();
+                    tvPaste.setVisibility(View.GONE);
+                    if (messageFlag.equals(Constants.OPERATION_MOVE)) {//移动要删除
+                        FileUtils.delete(copyPath);
+                    }
+                }
+                break;
+        }
+    }
+
+    private void refreshData() {
+        if (null != dataAdapter) {
+            dataList.clear();
+            dataList.addAll(FileUtils.getFile(new FileInfo(locationPath)));
+            dataAdapter.notifyDataSetChanged();
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent info) {
-        switch (info.getFlag()) {
+        messageFlag = info.getFlag();
+        switch (messageFlag) {
             case Constants.OPERATION_DELETE:
             case Constants.OPERATION_RENAME:
             case Constants.OPERATION_CREATE_FILE:
             case Constants.OPERATION_CREATE_DIR:
-                if (null != dataAdapter) {
-                    dataList.clear();
-                    dataList.addAll(FileUtils.getFile(homeList.get(leftPosition)));
-                    dataAdapter.notifyDataSetChanged();
-                }
-
+                refreshData();
                 ToastUtils.showLong(info.getResult());
                 break;
             case Constants.OPERATION_COPY:
+                tvPaste.setVisibility(View.VISIBLE);
+                copyPath = info.getContent();
                 break;
             case Constants.OPERATION_MOVE:
+                tvPaste.setVisibility(View.VISIBLE);
+                copyPath = info.getContent();
                 break;
-
         }
     }
 

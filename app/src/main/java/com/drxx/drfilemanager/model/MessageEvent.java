@@ -9,10 +9,25 @@ package com.drxx.drfilemanager.model;
 public class MessageEvent {
     private String flag;
     private String result;
+    private String content;
 
     public MessageEvent(String flag, String result) {
         this.flag = flag;
         this.result = result;
+    }
+
+    public MessageEvent(String flag, String result, String content) {
+        this.flag = flag;
+        this.result = result;
+        this.content = content;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public String getFlag() {

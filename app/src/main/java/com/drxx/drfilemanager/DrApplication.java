@@ -13,6 +13,7 @@ public class DrApplication extends Application {
 
     private Context mContext;
     private static DrApplication sInstance;
+    public static String newPartitionPath = "";//新盘的路径
     @Override
     public void onCreate() {
         super.onCreate();

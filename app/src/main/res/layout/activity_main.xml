@@ -47,6 +47,7 @@
                 android:layout_marginRight="10dp"
                 android:gravity="center"
                 android:padding="10dp"
+                android:visibility="gone"
                 android:text="粘贴" />
         </RelativeLayout>
 

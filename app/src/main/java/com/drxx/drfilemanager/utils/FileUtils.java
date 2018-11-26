@@ -3,13 +3,16 @@ package com.drxx.drfilemanager.utils;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
 import com.drxx.drfilemanager.Constants;
+import com.drxx.drfilemanager.DrApplication;
 import com.drxx.drfilemanager.model.FileInfo;
 
 import java.io.BufferedReader;
@@ -145,6 +148,145 @@ public class FileUtils {
     }
 
     /**
+     * 通过反射调用获取内置存储和外置sd卡根路径(通用)
+     *
+     * @param mContext 上下文
+     * @return
+     */
+    public static List<FileInfo> getStoragePath(Context mContext) {
+        List<FileInfo> list = new ArrayList<>();
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Method getPathFile = storageVolumeClazz.getMethod("getPathFile");
+            Object result = getVolumeList.invoke(mStorageManager);
+            final int length = Array.getLength(result);
+            for (int i = 0; i < length; i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                String path = (String) getPath.invoke(storageVolumeElement);
+                File file = (File) getPathFile.invoke(storageVolumeElement);
+
+                Log.e("BGA", "getPath = " + file.getPath());
+                Log.e("BGA", "getName = " + file.getName());
+                Log.e("BGA", "getAbsolutePath = " + file.getAbsolutePath());
+                Log.e("BGA", "getParent = " + file.getParent());
+                Log.e("BGA", "getTotalSpace = " + file.getTotalSpace());
+                Log.e("BGA", "getUsableSpace = " + file.getUsableSpace());
+                Log.e("BGA", "getParentFile = " + file.getParentFile());
+                Log.e("BGA", "path = " + path);
+                //path = /storage/emulated/0
+                //path = /storage/c94d6535-caff-44ef-a82d-91c93c50bc31
+                if (!path.contains(Constants.ROOT_PATH)) {
+                    DrApplication.newPartitionPath = path;
+                }
+                list.add(new FileInfo(path));
+
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    /**
+     * 通过反射调用获取内置存储和外置sd卡根路径(通用)
+     *
+     * @param mContext    上下文
+     * @param is_removale 是否可移除，false返回内部存储，true返回外置sd卡
+     * @return
+     */
+    public static String getStoragePath(Context mContext, boolean is_removale) {
+
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Method getPathFile = storageVolumeClazz.getMethod("getPathFile");
+            Object result = getVolumeList.invoke(mStorageManager);
+            final int length = Array.getLength(result);
+            for (int i = 0; i < length; i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                String path = (String) getPath.invoke(storageVolumeElement);
+                File file = (File) getPathFile.invoke(storageVolumeElement);
+
+                Log.e("BGA", "getPath = " + file.getPath());
+                Log.e("BGA", "getName = " + file.getName());
+                Log.e("BGA", "getAbsolutePath = " + file.getAbsolutePath());
+                Log.e("BGA", "getParent = " + file.getParent());
+                Log.e("BGA", "getTotalSpace = " + file.getTotalSpace());
+                Log.e("BGA", "getUsableSpace = " + file.getUsableSpace());
+                Log.e("BGA", "getParentFile = " + file.getParentFile());
+                Log.e("BGA", "path = " + path);
+                //path = /storage/emulated/0
+                //path = /storage/c94d6535-caff-44ef-a82d-91c93c50bc31
+                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+                if (is_removale == removable) {
+                    return path;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Uri getUriForFile(Context mContext, File file) {
+        return FileProvider.getUriForFile(mContext, "com.drxx.drfilemanager.fileprovider", file);
+    }
+
+
+    // <editor-fold defaultstate="collapsed" desc="打开文件">
+    /**
+     * 打开文件
+     *
+     * @param context
+     * @param f
+     */
+    public static void openFile(Context context, File f) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+        String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        //content://dev.dworks.apps.anexplorer.externalstorage.documents/document/secondary14d31d37-add0-4b1b-943b-628121d3f6ff%3AFile.txt
+        //content://com.drxx.drfilemanager.fileprovider/./storage/52bbaa09-bc93-4905-921d-5ebb84691e6a/doc/test3.doc
+        //7.0以上需要
+        if (Build.VERSION.SDK_INT >= 24) {
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            Uri uri = getUriForFile(context, f);
+            intent.setDataAndType(uri, mimetype);
+        } else {
+            intent.setDataAndType(Uri.fromFile(f), mimetype);
+        }
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            ToastUtils.showShort("未找到可以打开该文件的应用");
+        }
+
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="重命名">
+    /**
      * 重命名文件
      *
      * @param oldPath 原来的文件地址
@@ -159,15 +301,29 @@ public class FileUtils {
         if (oldFile.renameTo(newFile)) {
             Log.e("BGA", "isSuccess =" + isSuccess);
             result = "重命名成功";
-        }else{
+        } else {
             result = "重命名失败";
         }
         return result;
-
-
     }
+    // </editor-fold>
 
-
+    // <editor-fold defaultstate="collapsed" desc="复制文件">
+    public static boolean copyFiles(String fromFile, String toFile){
+        File targetDir = new File(toFile);
+        if(new File(fromFile).isDirectory()){//特殊处理，不然起始的目录有问题
+            if (fromFile.contains(Environment.getExternalStorageDirectory().getPath())) {
+                targetDir = new File(toFile + fromFile.split(Constants.ROOT_PATH)[1]);
+            } else if(fromFile.contains(DrApplication.newPartitionPath)){
+                targetDir = new File(toFile + fromFile.split(DrApplication.newPartitionPath)[1]);
+            }
+            //创建目录
+            if (!targetDir.exists()) {
+                targetDir.mkdirs();
+            }
+        }
+        return copy(fromFile,targetDir.getPath());
+    }
     /**
      * 复制文件
      *
@@ -176,9 +332,14 @@ public class FileUtils {
      * @return 是否复制成功
      */
     public static boolean copy(String fromFile, String toFile) {
+        if (toFile.lastIndexOf("/") != toFile.length() - 1) {
+            toFile = toFile + "/";
+        }
         //要复制的文件目录
         File[] currentFiles;
         File root = new File(fromFile);
+        //path = /storage/emulated/0/xx
+        //path = /storage/c94d6535-caff-44ef-a82d-91c93c50bc31/yyy
         //目标目录
         File targetDir = new File(toFile);
         //创建目录
@@ -232,160 +393,7 @@ public class FileUtils {
         }
     }
 
-    /**
-     * 通过反射调用获取内置存储和外置sd卡根路径(通用)
-     *
-     * @param mContext    上下文
-     * @param is_removale 是否可移除，false返回内部存储，true返回外置sd卡
-     * @return
-     */
-    public static String getStoragePath(Context mContext, boolean is_removale) {
-
-        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
-        Class<?> storageVolumeClazz = null;
-        try {
-            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
-            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
-            Method getPath = storageVolumeClazz.getMethod("getPath");
-            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
-            Method getPathFile = storageVolumeClazz.getMethod("getPathFile");
-            Object result = getVolumeList.invoke(mStorageManager);
-            final int length = Array.getLength(result);
-            for (int i = 0; i < length; i++) {
-                Object storageVolumeElement = Array.get(result, i);
-                String path = (String) getPath.invoke(storageVolumeElement);
-                File file = (File) getPathFile.invoke(storageVolumeElement);
-
-                Log.e("BGA", "getPath = " + file.getPath());
-                Log.e("BGA", "getName = " + file.getName());
-                Log.e("BGA", "getAbsolutePath = " + file.getAbsolutePath());
-                Log.e("BGA", "getParent = " + file.getParent());
-                Log.e("BGA", "getTotalSpace = " + file.getTotalSpace());
-                Log.e("BGA", "getUsableSpace = " + file.getUsableSpace());
-                Log.e("BGA", "getParentFile = " + file.getParentFile());
-                Log.e("BGA", "path = " + path);
-                //path = /storage/emulated/0
-                //path = /storage/c94d6535-caff-44ef-a82d-91c93c50bc31
-                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
-                if (is_removale == removable) {
-                    return path;
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * 通过反射调用获取内置存储和外置sd卡根路径(通用)
-     *
-     * @param mContext 上下文
-     * @return
-     */
-    public static List<FileInfo> getStoragePath(Context mContext) {
-        List<FileInfo> list = new ArrayList<>();
-        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
-        Class<?> storageVolumeClazz = null;
-        try {
-            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
-            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
-            Method getPath = storageVolumeClazz.getMethod("getPath");
-            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
-            Method getPathFile = storageVolumeClazz.getMethod("getPathFile");
-            Object result = getVolumeList.invoke(mStorageManager);
-            final int length = Array.getLength(result);
-            for (int i = 0; i < length; i++) {
-                Object storageVolumeElement = Array.get(result, i);
-                String path = (String) getPath.invoke(storageVolumeElement);
-                File file = (File) getPathFile.invoke(storageVolumeElement);
-
-                Log.e("BGA", "getPath = " + file.getPath());
-                Log.e("BGA", "getName = " + file.getName());
-                Log.e("BGA", "getAbsolutePath = " + file.getAbsolutePath());
-                Log.e("BGA", "getParent = " + file.getParent());
-                Log.e("BGA", "getTotalSpace = " + file.getTotalSpace());
-                Log.e("BGA", "getUsableSpace = " + file.getUsableSpace());
-                Log.e("BGA", "getParentFile = " + file.getParentFile());
-                Log.e("BGA", "path = " + path);
-                //path = /storage/emulated/0
-                //path = /storage/c94d6535-caff-44ef-a82d-91c93c50bc31
-                list.add(new FileInfo(path));
-
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-
-    /**
-     * 打开文件
-     *
-     * @param context
-     * @param f
-     */
-    public static void openFile(Context context, File f) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
-        String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        //content://dev.dworks.apps.anexplorer.externalstorage.documents/document/secondary14d31d37-add0-4b1b-943b-628121d3f6ff%3AFile.txt
-        //content://com.drxx.drfilemanager.fileprovider/./storage/52bbaa09-bc93-4905-921d-5ebb84691e6a/doc/test3.doc
-        //7.0以上需要
-        if (Build.VERSION.SDK_INT >= 24) {
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            Uri uri = getUriForFile(context, f);
-            intent.setDataAndType(uri, mimetype);
-        } else {
-            intent.setDataAndType(Uri.fromFile(f), mimetype);
-        }
-        try {
-            context.startActivity(intent);
-        }catch (ActivityNotFoundException e){
-            ToastUtils.showShort("未找到可以打开该文件的应用");
-        }
-
-    }
-
-    public static Uri getUriForFile(Context mContext, File file) {
-        return FileProvider.getUriForFile(mContext, "com.drxx.drfilemanager.fileprovider", file);
-    }
-
-    /**
-     * 删除
-     */
-    private void deleteDocument() {
-
-    }
-
-    /**
-     * 移动
-     */
-    private void moveDocument() {
-
-    }
-
-    /**
-     * 重命名
-     */
-    private void renameDocument() {
-
-    }
+    // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="添加文件">
 

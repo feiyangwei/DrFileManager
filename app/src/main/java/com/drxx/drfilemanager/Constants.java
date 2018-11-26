@@ -1,5 +1,7 @@
 package com.drxx.drfilemanager;
 
+import android.os.Environment;
+
 /**
  * 类描述：常量类
  * 创建人：wfy
@@ -17,5 +19,6 @@ public class Constants {
     public static final String OPERATION_RENAME = "rename";
     public static final String OPERATION_MOVE= "move";
 
-    public static final String RESULT_CREATE_DIR_SUCCESS= "成功";
+    public static final String ROOT_PATH = Environment.getExternalStorageDirectory().getPath();
+
 }
